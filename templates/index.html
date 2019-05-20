@@ -1,0 +1,186 @@
+﻿{% load static from staticfiles %}
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Fingerprint Scan</title>
+   
+    <link rel="stylesheet" href="{% static 'css/bootstrap-min.css' %}">
+    <link rel="stylesheet" href="{% static 'app.css' %}" type="text/css" />
+</head>
+<body>
+    <div id="Container">
+        <nav class="navbar navbar-inverse">
+          <div class="container-fluid">
+
+            <div class="navbar-header">
+              <div class="navbar-brand" href="#" style="color: white;">Fingerprint Clock In/Out</div>
+            </div>
+
+            <ul class="nav navbar-nav">
+              <li id="Reader" class="active">
+                <a href="#" style="color: white;" onclick="toggle_visibility(['content-reader','content-capture',
+                'content-register','content-administrator']);setActive('Reader','Capture','Register', 'Admin')">
+                    Reader</a>
+              </li>
+            </ul>
+
+            <ul class="nav navbar-nav">
+              <li id="Capture" class="">
+                <a href="#" style="color: white;" onclick="toggle_visibility(['content-capture','content-reader', 
+                'content-register', 'content-administrator']);setActive('Capture','Reader','Register', 'Admin')">
+                    Capture</a>
+              </li>
+            </ul> 
+
+            <ul class="nav navbar-nav">
+              <li id="Register" class="">
+                <a href="#" style="color: white;" onclick="toggle_visibility(['content-register','content-reader',
+                'content-capture', 'content-administrator']);setActive('Register','Reader','Capture', 'Admin')">
+                    Register</a>
+              </li>
+            </ul>   
+
+            <ul class="nav navbar-nav">
+              <li id="Admin" class="">
+                <a href="#" style="color: white;" onclick="toggle_visibility(['content-administrator','content-reader',
+                'content-capture', 'content-register']);setActive('Admin','Reader','Capture', 'Register')">
+                    Administrator</a>
+              </li>
+            </ul>     
+
+          </div>
+        </nav>
+       <div id="Scores">
+           <h5>Scan Quality : <input type="text" id="qualityInputBox" size="20" style="background-color:#DCDCDC;text-align:center;"></h5> 
+
+       </div>
+
+        <div id="content-reader">  
+            <h4>Select Reader :</h4>
+            <select class="form-control" id="readersDropDown" onchange="selectChangeEvent()">
+            </select>
+            <div id="readerDivButtons">
+                <table width=70% align="center">
+                        <tr>
+                            <td>
+                                <input type="button" class="btn btn-primary" id="refreshList" value="Refresh List" 
+                                    onclick="Javascript:readersDropDownPopulate(false)">
+                            </td>
+                            <td>
+                                <input type="button" class="btn btn-primary" id="capabilities" value="Capabilities"
+                                data-toggle="modal" data-target="#myModal" onclick="Javascript:populatePopUpModal()">
+                            </td>  
+                        </tr>
+                </table>
+
+              <!-- Modal - Pop Up window content-->
+              <div class="modal fade" id="myModal" role="dialog">
+                <div class="modal-dialog">
+                
+                  <!-- Modal content -->
+                  <div class="modal-content" id="modalContent" >
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal">&times;</button>
+                      <h4 class="modal-title">Reader Information</h4>
+                    </div>
+                    <div class="modal-body" id="ReaderInformationFromDropDown">
+                      
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+  
+            </div>
+        </div>
+
+        <div id="content-capture" style="display : none;">    
+            <div id="status"></div>            
+            <div id="imagediv"></div>
+            <div id="space"></div>
+            <div id="contentButtons">
+                <table width=40% align="center">
+                    <tr>
+                        <td>
+                            <input type="button" class="btn btn-primary" id="start" value="Start" onclick="Javascript:onStart()">
+                        </td>
+                        <td>
+                           <input type="button" class="btn btn-primary" id="stop" value="Stop" onclick="Javascript:onStop()">
+                        </td>
+                        <td>
+                            <input type="button" class="btn btn-primary" id="clearButton" value="Clear" onclick="Javascript:onClear()">
+                        </td>
+                        <td>
+                            <input type="button" class="btn btn-success" id="clock" value="ClockOut" onclick="Javascript:onClockOut()">
+                        </td>
+                </table>
+            </div> 
+            <div id="clockinfo_display" style = "overflow: auto;"></div>    
+
+        </div>
+
+        <div id = "content-register">
+            <div id="username">
+                <input type="text" class="form-control" placeholder="User Name" id="usr_name">
+            </div>
+            <div id="status"></div>
+            <div id="imagediv1"></div>
+            <div id="space"></div>
+            <div id="contentButtons">
+                <table width=40% align="center">
+                    <tr>
+                        <td>
+                            <input type="button" class="btn btn-primary" id="start" value="Start" onclick="Javascript:onStart()">
+                        </td>
+                        <td>
+                           <input type="button" class="btn btn-primary" id="stop" value="Stop" onclick="Javascript:onStop()">
+                        </td>
+                        <td>
+                            <input type="button" class="btn btn-primary" id="clearButton" value="Clear" onclick="Javascript:onClear()">
+                        </td>
+                        <td>
+                            <input type="button" class="btn btn-success" id="register" value="Register" onclick="Javascript:onRegister()">
+                        </td>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id = "content-administrator">
+        
+    </div>
+
+    <div class="modal fade" id="loadMe" tabindex="-1" role="dialog" aria-labelledby="loadMeLabel">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="loader"></div>
+                    <div clas="loader-txt">
+                        <p>Processing... Please wait.. <br></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'lib/jquery.min.js' %}"></script>
+    <script src="{% static 'lib/bootstrap.min.js' %}"></script>
+    <script src="{% static 'scripts/es6-shim.js' %}"></script>
+    <script src="{% static 'scripts/websdk.client.bundle.min.js' %}"></script>
+    <script src="{% static 'scripts/fingerprint.sdk.min.js' %}"></script>
+    <script src="{% static 'app.js' %}"></script>
+
+    <script type="text/javascript">
+      $(document).ready(function(){
+        $('#content-register').css('display', 'none');
+        $('#content-administrator').css('display', 'none');
+      });
+    </script>
+</body>
+</html>
