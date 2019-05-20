@@ -165,7 +165,7 @@ function onRegister() {
             method : 'POST',
             success: function(res){
                 $("#loadMe").modal("hide");                
-                alert(res.data);
+                alert(res.message);
             }
         })
     }
