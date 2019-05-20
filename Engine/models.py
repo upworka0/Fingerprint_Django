@@ -1,7 +1,6 @@
 from django.db import models
 
 # Create your models here.
-
 class PrintUser(models.Model):
     username    = models.CharField(max_length=255, help_text='User Name')
     image_path  = models.CharField(max_length=255, help_text='Print Image path')

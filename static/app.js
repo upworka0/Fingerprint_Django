@@ -164,9 +164,8 @@ function onRegister() {
                     username: user_name},
             method : 'POST',
             success: function(res){
-                $("#loadMe").modal("hide");
-                var data = JSON.parse(res);
-                alert(res.message);
+                $("#loadMe").modal("hide");                
+                alert(res.data);
             }
         })
     }
