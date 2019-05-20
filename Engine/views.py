@@ -103,8 +103,8 @@ def saveImagePath(base64_str, imgname):
         with open(filePath, 'wb') as f:
             f.write(imgdata)
     except IOError as e:
-        return False
-    return True
+        return ''
+    return filePath
 
 @csrf_exempt
 def process(request):
@@ -119,9 +119,16 @@ def register(request):
     if request.method == "POST":
         input_base64 = request.POST['data']
         username = request.POST['username']
-        flag = saveImagePath(input_base64, username)
+        img_path = saveImagePath(input_base64, username)
+        if img_path == '':
+            return JsonResponse({"status" : 'failed', "message" : "Image is not saved!"})
 
-        user = PrintUser.objects.filter(username=username)
+        user = PrintUser.objects.filter(username=username)        
         if user.count() > 0:
             return JsonResponse({"status" : 'failed', "message" : "Email is already registered!"})
+
+        new_user = PrintUser()
+        new_user.username = username
+        new_user.image_path = img_path
+        new_user.save()
         return JsonResponse({"status" : 'success', "message" : "Data is registered successfully!"})

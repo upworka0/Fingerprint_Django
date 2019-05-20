@@ -8,10 +8,8 @@ class PrintUser(models.Model):
     clockin_on  = models.DateTimeField(auto_now=True, db_index=True)
     clockout_on = models.DateTimeField(auto_now=True, db_index=True)
 
-    def __init__(self, username, path):
-        self.username = username
-        self.image_path = path
-
+    def __str__(self):
+        return self.username
 
 class Clocks(models.Model):
     user = models.ForeignKey(PrintUser, on_delete=models.CASCADE, help_text="PrintUser")
