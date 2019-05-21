@@ -24,9 +24,12 @@ urlpatterns = [
     path('process/',    views.process),
     path('clockout/',   views.clockOut),
     path('register/',   views.register),
-    path('adminpage/',  views.admin), # Administrator page
-    path('rmuser/',     views.userRemove), # Delete a user
-    path('admin/',      admin.site.urls),    
+
+    path('managepage/', views.adminpage),   # Administrator api
+    path('adminapi/',   views.adminapi),    # Administrator api
+    path('rmuser/',     views.userRemove),  # Delete a user
+    path('login/',      views.login),       # login for admin page
+    path('admin/',      admin.site.urls),
 ]
 
 urlpatterns += staticfiles_urlpatterns()

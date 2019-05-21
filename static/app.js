@@ -150,7 +150,8 @@ function onClear() {
 function onRegister() {
     var user_name = document.getElementById('usr_name').value;
     if(user_name == ""){
-        alert("Please input the username");
+        // alert("Please input the username");
+        showNotification("Please input the username", "danger")
     }
     else{
         $("#loadMe").modal({
@@ -169,7 +170,10 @@ function onRegister() {
             method : 'POST',
             success: function(res){
                 $("#loadMe").modal("hide");
-                alert(res.message);
+                if (res.status==='success')
+                    showNotification(res.message, 'success');
+                else
+                    showNotification(res.message, 'danger');                
             }
         })
     }
@@ -182,14 +186,17 @@ async function onClockOut(){
         var res = await AjaxRequest('/clockout/',  {"username" : clockin_name});
        
         if (res.status === 'success'){
-            alert(res.message);
+            showNotification(res.message, 'success');
+            clockin_name = '';            
             var vDisplay = document.getElementById('clockinfo_display');
-            vDisplay.innerHTML = res.message + "<br>";        
+            vDisplay.innerHTML = "<br>";
         }else{
-            alert(res.message);
+            showNotification(res.message, 'danger');
+            // alert(res.message);
         }
     }else{
-        alert("Please Scan first.");
+        showNotification("Please Scan first.", 'warning');
+        // alert("Please Scan first.");
     }
 }
 
@@ -268,10 +275,12 @@ function sendImageData(img){
             var vDisplay = document.getElementById('clockinfo_display');
             if(res.status == "failed"){
                 alert(res.message);
+                showNotification(res.message, "danger");
                 vDisplay.innerHTML = "<br>";
             }
             else{
                 clockin_name = res.username;
+                showNotification(res.message, "success");
                 vDisplay.innerHTML = res.message + "<br>";
             }
         }
@@ -384,14 +393,14 @@ function disableEnable(){
 
     if(myVal != ""){
         disabled = false;
-        $('#start').prop('disabled', false);
-        $('#stop').prop('disabled', false);
+        $('.start').prop('disabled', false);
+        $('.stop').prop('disabled', false);
         showMessage("");
         disableEnableStartStop();
     }else{
         disabled = true;
-        $('#start').prop('disabled', true);
-        $('#stop').prop('disabled', true);
+        $('.start').prop('disabled', true);
+        $('.stop').prop('disabled', true);
         showMessage("Please select a reader");
         onStop();
     }
@@ -404,11 +413,11 @@ $('body').click(function(){disableEnableStartStop();});
 function disableEnableStartStop(){
      if(!myVal == ""){
         if(test.acquisitionStarted){
-            $('#start').prop('disabled', true);
-            $('#stop').prop('disabled', false);
+            $('.start').prop('disabled', true);
+            $('.stop').prop('disabled', false);
         }else{
-            $('#start').prop('disabled', false);
-            $('#stop').prop('disabled', true);
+            $('.start').prop('disabled', false);
+            $('.stop').prop('disabled', true);
         }
     }
 }
@@ -437,9 +446,4 @@ function setActive(element1,element2, element3, element4){
 
 function assignFormat(){
     currentFormat = Fingerprint.SampleFormat.PngImage;
-}
-
-async function onAdminPage(){
-    setUsersTab();
-    initTables();
 }

@@ -129,7 +129,7 @@ def process(request):
                 return JsonResponse({
                     "status"   : "success",
                     "username" : identifid_name,
-                    "message"  : identifid_name + " was already clocked in at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " EST"            
+                    "message"  : identifid_name + " was clocked in at " + user.clockin_on.strftime('%Y-%m-%d %H:%M:%S') + " EST"            
                 })
             user.clockIn()
         else:
@@ -179,17 +179,27 @@ def register(request):
         new_user.save()
         return JsonResponse({"status" : 'success', "message" : "Data is registered successfully!"})
 
-
+@csrf_exempt
+def adminpage(request):
+    return render(request, "admin.html")
 
 @csrf_exempt
-def admin(request):
+def login(request):
+    if request.method=='POST':
+        if request.POST['username'] =='root' and request.POST['password']=='root':
+            return JsonResponse({ "status" : "success"})
+        else:
+            return JsonResponse({ "status" : "failed"})
+
+@csrf_exempt
+def adminapi(request):
     if request.method=='POST':
         # Get all PrintUser Objects
         # Get all Clocks Objects
         users = PrintUser.objects.all() #order_by('created_on')
         users_dicts = []
         for user in users:
-            ur = {                
+            ur = {
                 "username" : user.username,
                 "created_at" : user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             }
@@ -205,8 +215,9 @@ def admin(request):
             end_date  = request.POST['end_date']
             clocks = clocks.filter(clockin__lte=end_date)
 
-        if 'user' in request.POST:
-            clocks.filter(user__username=request.POST['username'])
+        if 'username' in request.POST:
+            print(request.POST['username'])
+            clocks = clocks.filter(user__username=request.POST['username'])
 
         clocks_dicts = []
         for clock in clocks:
@@ -222,6 +233,8 @@ def admin(request):
             "users"  : users_dicts,
             "clocks" : clocks_dicts,
             })
+    else:
+        return render(request, "index.html")
 
 
 @csrf_exempt
