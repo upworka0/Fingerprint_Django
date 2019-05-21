@@ -20,10 +20,13 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from Engine import views
 
 urlpatterns = [
-    path('index/', views.index),
-    path('process/', views.process),
-    path('register/', views.register),
-    path('admin/', admin.site.urls),
+    path('index/',      views.index),
+    path('process/',    views.process),
+    path('clockout/',   views.clockOut),
+    path('register/',   views.register),
+    path('adminpage/',  views.admin), # Administrator page
+    path('rmuser/',     views.userRemove), # Delete a user
+    path('admin/',      admin.site.urls),    
 ]
 
 urlpatterns += staticfiles_urlpatterns()

@@ -28,6 +28,8 @@ var deviceUidType = {
                1: "Volatile"
             }
 
+var clockin_name='';
+var clockTable, userTable;
 var FingerprintSdkTest = (function () {
     function FingerprintSdkTest() {
         var _instance = this;
@@ -141,6 +143,8 @@ function onClear() {
          var vDiv1 = document.getElementById('imagediv1');
          vDiv1.innerHTML = "";
          localStorage.setItem("imageSrc", "");
+
+         clockin_name = '';
 }
 
 function onRegister() {
@@ -171,8 +175,22 @@ function onRegister() {
     }
 }
 
-function onClockOut(){
+// Clock Out of user
+async function onClockOut(){
 
+    if (clockin_name !== ''){
+        var res = await AjaxRequest('/clockout/',  {"username" : clockin_name});
+       
+        if (res.status === 'success'){
+            alert(res.message);
+            var vDisplay = document.getElementById('clockinfo_display');
+            vDisplay.innerHTML = res.message + "<br>";        
+        }else{
+            alert(res.message);
+        }
+    }else{
+        alert("Please Scan first.");
+    }
 }
 
 function toggle_visibility(ids) {
@@ -248,16 +266,20 @@ function sendImageData(img){
         success: function(res){
             $("#loadMe").modal("hide");
             var vDisplay = document.getElementById('clockinfo_display');
-            if(res.Name == ""){
-                alert("You are not clocked in. Please register!");
+            if(res.status == "failed"){
+                alert(res.message);
+                vDisplay.innerHTML = "<br>";
             }
             else{
-                vDisplay.innerHTML = res.Name + " were clocked in at " + res.Time + " EST" + "<br>";
+                clockin_name = res.username;
+                vDisplay.innerHTML = res.message + "<br>";
             }
-
         }
     })
 }
+
+
+
 
 
 function sampleAcquired(s){
@@ -415,4 +437,9 @@ function setActive(element1,element2, element3, element4){
 
 function assignFormat(){
     currentFormat = Fingerprint.SampleFormat.PngImage;
+}
+
+async function onAdminPage(){
+    setUsersTab();
+    initTables();
 }

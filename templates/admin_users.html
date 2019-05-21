@@ -1,4 +1,4 @@
-﻿{% load static from staticfiles %}
+{% load static from staticfiles %}
 
 <!DOCTYPE html>
 
@@ -13,17 +13,8 @@
     <!-- Optional theme -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
 
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
-
-    <!-- Bootstrap DataTable -->
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap.min.css" />
-    <!-- Bootstrap datetime picker -->
-    <link rel="stylesheet" type="text/css" href="{% static 'datetimepicker/bootstrap-datetimepicker.css' %}" />
-
     <link rel="stylesheet" href="{% static 'app.css' %}" type="text/css" />
-    
-
-
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 </head>
 <body>
     <div id="Container">
@@ -172,85 +163,28 @@
             <div class="col-md-8 col-md-offset-2">
                 <div class="row">
                     <ul class="nav nav-tabs m-b-30">
-                        <li class="users_tab active"><a href="#" onclick="setUsersTab();">Users</a></li>
-                        <li class="history_tab"><a href="#" onclick="setHistoryTab();">History</a></li>
+                        <li class="active"><a href="#">Users</a></li>
+                        <li><a href="#">History</a></li>
                     </ul>
                 </div>
                 
-                <div class="row users_content">
-                    <div class="col-md-12">
-                        <table class="table table-striped table-bordered" id="users_table">
+                <div class="row">
+                    <div class="filter col-md-6">
+                        <input type="text" name="datetimes" class="form-control">
+                    </div>
+                    <div class="col-md-12 m-t-30">
+                        <table class="table" id="clock_table">
                             <thead>
                                 <tr>
                                     <th>No</th>
                                     <th>User</th>
-                                    <th>Created At</th>
-                                    <th>Action</th>
+                                    <th>Clocked In</th>
+                                    <th>Clocked Out</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody>                            
                             </tbody>
                         </table>
-                    </div>
-                </div>
-
-                <div class="row history_content hidden">
-                    <div class="row">
-                        <div class="col-md-7">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>Start Date</label>
-                                        <div class='input-group date' id='start_date'>
-                                            <input type='text' class="form-control" name="start_date" />
-                                            <span class="input-group-addon">
-                                                <span class="glyphicon glyphicon-calendar"></span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label>End Date</label>
-                                        <div class='input-group date' id='end_date'>
-                                            <input type='text' class="form-control" name="end_date" />
-                                            <span class="input-group-addon">
-                                                <span class="glyphicon glyphicon-calendar"></span>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-5">
-                            <div class="row">
-                                <div class="col-md-7">
-                                    <label>User</label>
-                                    <select class="form-control" id="user_select">
-                                    </select>
-                                </div>
-                                <div class="col-md-5">
-                                    <div class="form-group">
-                                        <label>&nbsp;</label>
-                                        <button class="btn btn-primary form-control">Search</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-12 m-t-30">
-                            <table class="table table-striped table-bordered" id="clock_table">
-                                <thead>
-                                    <tr>
-                                        <th>No</th>
-                                        <th>User</th>
-                                        <th>Clocked In</th>
-                                        <th>Clocked Out</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -281,7 +215,7 @@
     <script src="{% static 'scripts/fingerprint.sdk.min.js' %}"></script>
     <!-- <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script> -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script type="text/javascript" src="{% static 'datetimepicker/bootstrap-datetimepicker.min.js' %}"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
 
     <!-- Jquery dataTable Plugin -->
@@ -297,23 +231,16 @@
             $('#content-register').css('display', 'none');
             $('#content-administrator').css('display', 'none');
 
-
-            $('#start_date').datetimepicker({
-               format: 'YYYY-MM-DD hh:mm:ss',
-            });
-            $('#end_date').datetimepicker({
-                format: 'YYYY-MM-DD hh:mm:ss',
-                useCurrent: false //Important! See issue #1075
-            });
-            $("#start_date").on("dp.change", function (e) {
-                $('#end_date').data("DateTimePicker").minDate(e.date);
-            });
-            $("#end_date").on("dp.change", function (e) {
-                $('#start_date').data("DateTimePicker").maxDate(e.date);
+            $('input[name="datetimes"]').daterangepicker({
+                timePicker: true,
+                startDate: moment().startOf('hour'),
+                endDate: moment().startOf('hour').add(32, 'hour'),
+                locale: {
+                  format: 'M/DD hh:mm A'
+                }
             });
 
-            userTable   = $('#users_table').DataTable();
-            clockTable  = $('#clock_table').DataTable();
+            clockTable = $('#clock_table').DataTable();
         });
     </script>
 </body>

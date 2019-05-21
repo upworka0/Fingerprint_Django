@@ -2,6 +2,9 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from .models import *
+from .utils import *
+from django.views.generic.list import ListView
+
 
 import os
 os.environ['CLASSPATH'] = "/opt/Crossmatch/urusdk-linux/Linux/lib/java/dpuareu.jar"
@@ -10,7 +13,7 @@ import glob
 import numpy as np
 from jnius import autoclass
 import base64
-import datetime
+import datetime, json
 
 #define java library for using it in python
 Fmd = autoclass('com.digitalpersona.uareu.Fmd')
@@ -77,12 +80,14 @@ def identify_engine(filepath):
         else:
             result_str = ""
 
-    time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    json_res = {}
-    json_res.update({"Name": result_str,
-                     "Time": time})
+    # time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # json_res = {}
+    # json_res.update({"Name": result_str,
+    #                  "Time": time})
+    # return json_res
+    return result_str
 
-    return json_res
+    
 
 # Create your views here.
 def index(request):
@@ -106,13 +111,54 @@ def saveImagePath(base64_str, imgname):
         return ''
     return filePath
 
+
+## identify user by fingerprint image
 @csrf_exempt
 def process(request):
     if request.method == "POST":
         input_base64 = request.POST['data']
         filePath = getImagePath(input_base64)
-        result = identify_engine(filePath)
-        return JsonResponse(result)
+        identifid_name = identify_engine(filePath)        
+
+        # if there is not matched image, then return error message for register
+        # if user is already clocked in, return message it was already clocked in.
+        # else set user's clockin status True and return success message to confirm it was clocked in successfully
+        if not identifid_name == '':
+            user = PrintUser.objects.get(username=identifid_name)            
+            if user.is_clockedIn:
+                return JsonResponse({
+                    "status"   : "success",
+                    "username" : identifid_name,
+                    "message"  : identifid_name + " was already clocked in at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " EST"            
+                })
+            user.clockIn()
+        else:
+            return JsonResponse(errorMessage("Sorry no match found, please contact your administrator, or If you were not registered, then please register!"))
+
+        return JsonResponse({
+            "status"   : "success",
+            "username" : identifid_name,
+            "message"  : identifid_name + " was successfully clocked in at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " EST"            
+        })
+
+
+@csrf_exempt
+def clockOut(request):    
+    if request.method == "POST":
+        # Get Printuser by username(email)
+        # set clocked_status to off, and create new Clocks object
+        username = request.POST['username']
+        user = PrintUser.objects.get(username=username)
+        if user is not None:
+            if user.is_clockedIn:
+                user.clockedOff()
+                clock = Clocks()
+                clock.setValues(user=user)                
+                return JsonResponse(successMessage("%s was successfully clocked out at %s EST" % (username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))))
+            else:
+                return JsonResponse(errorMessage("%s was already clocked out at %s EST" % (username, user.clockout_on.strftime('%Y-%m-%d %H:%M:%S'))))
+        else:
+            return JsonResponse(errorMessage("%s is not existed!" % username))
 
 @csrf_exempt
 def register(request):
@@ -132,3 +178,63 @@ def register(request):
         new_user.image_path = img_path
         new_user.save()
         return JsonResponse({"status" : 'success', "message" : "Data is registered successfully!"})
+
+
+
+@csrf_exempt
+def admin(request):
+    if request.method=='POST':
+        # Get all PrintUser Objects
+        # Get all Clocks Objects
+        users = PrintUser.objects.all() #order_by('created_on')
+        users_dicts = []
+        for user in users:
+            ur = {                
+                "username" : user.username,
+                "created_at" : user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            users_dicts.append(ur)
+
+
+        clocks = Clocks.objects.order_by('created_at')
+        if 'start_date' in request.POST:
+            start_date  = request.POST['start_date']
+            clocks = clocks.filter(clockin__gte=start_date)
+        
+        if 'end_date' in request.POST:
+            end_date  = request.POST['end_date']
+            clocks = clocks.filter(clockin__lte=end_date)
+
+        if 'user' in request.POST:
+            clocks.filter(user__username=request.POST['username'])
+
+        clocks_dicts = []
+        for clock in clocks:
+            ck = {
+                "username"  : clock.user.username,
+                "clockin"   : clock.clockin.strftime('%Y-%m-%d %H:%M:%S'),
+                "clockout"  : clock.clockout.strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            clocks_dicts.append(ck)
+
+        return JsonResponse({
+            "status" : "success",
+            "users"  : users_dicts,
+            "clocks" : clocks_dicts,
+            })
+
+
+@csrf_exempt
+def userRemove(request):
+    # remove a User by name
+    if request.method == 'POST':        
+        users = PrintUser.objects.filter(username=request.POST['username'])
+        if users.count()==1:
+            try:
+                os.remove(users[0].image_path)
+            except:
+                print("Cant delete file")
+                pass
+            users[0].delete()
+        return JsonResponse({"status" : "success"})
+
