@@ -131,7 +131,7 @@
                             <input type="button" class="btn btn-primary" id="clearButton" value="Clear" onclick="Javascript:onClear()">
                         </td>
                         <td>
-                            <input type="button" class="btn btn-success" id="clock" value="ClockOut" onclick="Javascript:onClockOut()">
+                            <input type="button" class="btn btn-success" id="clock" value="ClockOut"> <!--  onclick="Javascript:onClockOut()" -->
                         </td>
                     </tr>
                 </table>
@@ -329,6 +329,11 @@
                     setActive('Capture','Reader','Register', 'Admin');
                     break;
             }
+
+            $('#clock').click(function(){
+                if (clocked_status) onClockedIn();
+                else onClockOut();
+            });
         });
     </script>
 </body>

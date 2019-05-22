@@ -28,7 +28,7 @@ var deviceUidType = {
                1: "Volatile"
             }
 
-var clockin_name='';
+var clockin_name='', clocked_status = false;
 var clockTable, userTable;
 var FingerprintSdkTest = (function () {
     function FingerprintSdkTest() {
@@ -144,23 +144,31 @@ function onClear() {
          vDiv1.innerHTML = "";
          localStorage.setItem("imageSrc", "");
 
-         clockin_name = '';
+        clocked_status = false;
+        clockin_name = '';
+        checkButtonStatus();
 }
 
 function onRegister() {
     var user_name = document.getElementById('usr_name').value;
     if(user_name == ""){
         // alert("Please input the username");
-        showNotification("Please input the username", "danger")
+        showNotification("Please input the username", "danger");
     }
     else{
+        var _Str = localStorage.getItem("imageSrc");
+        if (_Str === undefined || _Str === "") {
+            showNotification("Please Scan now", "danger");
+            return;
+        }
+
         $("#loadMe").modal({
             backdrop: "static", //remove ability to close modal with click
             keyboard: false, //remove option to close with keyboard
             show: true //Display loader!
-        });
+        });        
 
-        var input_Str = localStorage.getItem("imageSrc").split(',');
+        var input_Str = _Str.split(',');        
         base_input = input_Str[1];
 
         $.ajax({
@@ -196,9 +204,31 @@ async function onClockOut(){
         }
     }else{
         showNotification("Please Scan first.", 'warning');
-        // alert("Please Scan first.");
     }
+
+    checkButtonStatus();
 }
+
+// Clock In of user
+async function onClockOut(){
+    if (clockin_name !== ''){
+        var res = await AjaxRequest('/clockin/',  {"username" : clockin_name});
+       
+        if (res.status === 'success'){
+            showNotification(res.message, 'success');
+            clockin_name = '';            
+            var vDisplay = document.getElementById('clockinfo_display');
+            vDisplay.innerHTML = "<br>";
+        }else{
+            showNotification(res.message, 'danger');
+        }
+    }else{
+        showNotification("Please Scan first.", 'warning');
+    }
+    checkButtonStatus();
+}
+
+
 
 function toggle_visibility(ids) {
     document.getElementById("qualityInputBox").value = "";
@@ -215,6 +245,9 @@ function toggle_visibility(ids) {
             e.style.display = 'none';
        }
    }
+   clocked_status = false;
+   clockin_name = '';
+   checkButtonStatus();
 }
 
 function populateReaders(readersArray) {
@@ -274,20 +307,19 @@ function sendImageData(img){
             $("#loadMe").modal("hide");
             var vDisplay = document.getElementById('clockinfo_display');
             if(res.status == "failed"){
-                alert(res.message);
                 showNotification(res.message, "danger");
-                vDisplay.innerHTML = "<br>";
+                vDisplay.innerHTML =  "<br>";
             }
             else{
                 clockin_name = res.username;
-                showNotification(res.message, "success");
-                vDisplay.innerHTML = res.message + "<br>";
+                clocked_status = res.clocked_status;
+                // showNotification(res.message, "success");
+                vDisplay.innerHTML = "Hello " + clockin_name + "!<br>";
             }
+            checkButtonStatus();
         }
     })
 }
-
-
 
 
 
@@ -447,3 +479,4 @@ function setActive(element1,element2, element3, element4){
 function assignFormat(){
     currentFormat = Fingerprint.SampleFormat.PngImage;
 }
+

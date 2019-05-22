@@ -1,5 +1,8 @@
 // request function
 // allowed only post method
+
+var userdata, historydata;
+
 function AjaxRequest(url, data){
     return new Promise((resolve, reject) => {
        $.ajax({
@@ -26,15 +29,29 @@ function showSpinner(){
 }
 
 // users table initialize by data
-function initUserTables(data){
+function initUserTables(data, is_clockedIn=false){
     var i, users = [];
     for ( i = 0 ; i < data.length; i++){
-        users.push([
-            i+1,
-            data[i].username,
-            data[i].created_at,
-            '<a class="remove" onclick="userRemove(' + "'" + data[i].username + "'" + ')"><i class="fas fa-trash"></i> Remove</a>'
-        ]);
+        if (is_clockedIn){
+            if (data[i].is_clockedIn)
+                users.push([
+                    i+1,
+                    data[i].username,
+                    data[i].is_clockedIn,
+                    0,
+                    data[i].created_at,
+                    '<a class="remove" onclick="userRemove(' + "'" + data[i].username + "'" + ')"><i class="fas fa-trash"></i> Remove</a>'
+                ]);
+        }else{
+            users.push([
+                i+1,
+                data[i].username,
+                data[i].is_clockedIn,
+                0,
+                data[i].created_at,
+                '<a class="remove" onclick="userRemove(' + "'" + data[i].username + "'" + ')"><i class="fas fa-trash"></i> Remove</a>'
+            ]);
+        }
     }
 
     userTable.clear();
@@ -93,6 +110,8 @@ async function initTables(){
     showSpinner();
     var res = await AjaxRequest('/adminapi/', {});
     hideSpinner();
+    userdata = res.users;
+    historydata = res.clocks;    
     initUserTables(res.users);
     initHistoryTables(res.clocks);
     initSelect(res.users);    
@@ -126,7 +145,8 @@ async function Search(){
     var res = await AjaxRequest('/adminapi/', data);
     hideSpinner();
 
-
+    userdata = res.users;
+    historydata = res.clocks;
     initUserTables(res.users);
     initHistoryTables(res.clocks);
     // initSelect(res.users);
@@ -163,8 +183,8 @@ function showNotification(message, type){
 async function onAdminPage(){    
 }
 
-
-async function onRegister(){
+// Login on admin page
+async function onLogin(){
     var res, data;
     if ($('#loginform').valid()){
         data = {
@@ -184,5 +204,20 @@ async function onRegister(){
         }else{
             showNotification("Invalid Credentials", "danger");
         }
+    }
+}
+
+
+// set ClockIn and ClockOut button status
+function checkButtonStatus(){
+    // var clockin_name='', clocked_status = false;
+    if (clockin_name == '') $('#clock').prop('disabled', true);
+    else{
+        $('#clock').prop('disabled', false);
+
+        if (clocked_status)
+            $('#clock').val("Clock Out");
+        else
+            $('#clock').val("Clock In");
     }
 }

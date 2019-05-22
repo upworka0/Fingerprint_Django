@@ -124,26 +124,43 @@ def process(request):
         # if user is already clocked in, return message it was already clocked in.
         # else set user's clockin status True and return success message to confirm it was clocked in successfully
         if not identifid_name == '':
-            user = PrintUser.objects.get(username=identifid_name)            
+            user = PrintUser.objects.get(username=identifid_name)
+            is_clockedIn = False
             if user.is_clockedIn:
-                return JsonResponse({
+                is_clockedIn = True
+            return JsonResponse({
                     "status"   : "success",
                     "username" : identifid_name,
-                    "message"  : identifid_name + " was clocked in at " + user.clockin_on.strftime('%Y-%m-%d %H:%M:%S') + " EST"            
+                    "clocked_status" :  is_clockedIn,
+                    "message" : ""
                 })
-            user.clockIn()
         else:
             return JsonResponse(errorMessage("Sorry no match found, please contact your administrator, or If you were not registered, then please register!"))
 
-        return JsonResponse({
-            "status"   : "success",
-            "username" : identifid_name,
-            "message"  : identifid_name + " was successfully clocked in at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " EST"            
-        })
+@csrf_exempt
+def clockIn(request):
+    if request.method == "POST":
+        # if user is already clocked in, return message it was already clocked in.
+        username = request.POST['username']
+        user = PrintUser.objects.get(username=username)
+        if user.is_clockedIn:
+            return JsonResponse({
+                "status"   : "success",
+                "username" : username,
+                "message"  : username + " was clocked in at " + user.clockin_on.strftime('%Y-%m-%d %H:%M:%S') + " EST"
+            })
+        else:
+            user.clockIn()
+
+            return JsonResponse({
+                "status"   : "success",
+                "username" : username,
+                "message"  : username + " was successfully clocked in at " + datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S') + " EST"
+            })
 
 
 @csrf_exempt
-def clockOut(request):    
+def clockOut(request):
     if request.method == "POST":
         # Get Printuser by username(email)
         # set clocked_status to off, and create new Clocks object
@@ -153,7 +170,7 @@ def clockOut(request):
             if user.is_clockedIn:
                 user.clockedOff()
                 clock = Clocks()
-                clock.setValues(user=user)                
+                clock.setValues(user=user)
                 return JsonResponse(successMessage("%s was successfully clocked out at %s EST" % (username, datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))))
             else:
                 return JsonResponse(errorMessage("%s was already clocked out at %s EST" % (username, user.clockout_on.strftime('%Y-%m-%d %H:%M:%S'))))
@@ -169,7 +186,7 @@ def register(request):
         if img_path == '':
             return JsonResponse({"status" : 'failed', "message" : "Image is not saved!"})
 
-        user = PrintUser.objects.filter(username=username)        
+        user = PrintUser.objects.filter(username=username)
         if user.count() > 0:
             return JsonResponse({"status" : 'failed', "message" : "Email is already registered!"})
 
@@ -200,8 +217,11 @@ def adminapi(request):
         users_dicts = []
         for user in users:
             ur = {
-                "username" : user.username,
-                "created_at" : user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                "username"      : user.username,
+                "created_at"    : user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                "is_clockedIn"  : user.is_clockedIn,
+                "clockin_on"    : user.clockin_on,
+                "clockout_on"   : user.clockout_on
             }
             users_dicts.append(ur)
 
