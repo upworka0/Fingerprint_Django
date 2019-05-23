@@ -46,7 +46,7 @@
               <li id="Capture" class="">
                 <a href="#" style="color: white;" onclick="toggle_visibility(['content-capture','content-reader', 
                 'content-register', 'content-administrator']);setActive('Capture','Reader','Register', 'Admin')">
-                    Capture</a>
+                    Clock IN/OUT</a>
               </li>
             </ul> 
 
@@ -131,7 +131,7 @@
                             <input type="button" class="btn btn-primary" id="clearButton" value="Clear" onclick="Javascript:onClear()">
                         </td>
                         <td>
-                            <input type="button" class="btn btn-success" id="clock" value="ClockOut"> <!--  onclick="Javascript:onClockOut()" -->
+                            <input type="button" class="btn btn-success"  value="ClockOut"> <!-- id="clock"  onclick="Javascript:onClockOut()" -->
                         </td>
                     </tr>
                 </table>
@@ -273,6 +273,45 @@
         </div>
     </div>
 
+
+    <div id="statusModal" class="modal fade in" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+ 
+                <div class="modal-header">
+                    <a class="btn btn-default">  <!-- data-dismiss="modal" -->
+                        <span class="glyphicon glyphicon-remove"></span>
+                    </a>
+                    <h4 class="modal-title">
+                        <span class="glyphicon glyphicon-info-sign" style="color: darkorange;"></span>  Clock Status!
+                    </h4>
+                </div>
+                <div class="modal-body text-center">
+                    <div id="staus_text" class="text-center">
+                        <h4>Hello Test! <br> You are already clocked in. Are you sure clock out now?</h4>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="btn-group hidden" id="forsuccess">
+                        <button class="btn btn-danger" data-dismiss="modal">
+                            <span class="glyphicon glyphicon-remove"></span> Cancel
+                        </button>
+
+                        <button class="btn btn-primary" id="clock">
+                            <span class="glyphicon glyphicon-check"></span> Clock
+                        </button>
+                    </div>
+                    <div class="btn-group hidden" id="fordanger">
+                        <button class="btn btn-warning" data-dismiss="modal">
+                            <span class="glyphicon glyphicon-alert"></span> OK
+                        </button>
+                    </div>
+                </div>
+ 
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dalog -->
+    </div><!-- /.modal -->
+
     <script src="{% static 'lib/jquery.min.js' %}"></script>
     <!-- <script src="{% static 'lib/bootstrap.min.js' %}"></script> -->
 
@@ -303,36 +342,11 @@
         $(document).ready(function(){
             $('#content-register').css('display', 'none');
             $('#content-administrator').css('display', 'none');
-
-            // url parse and set tab by tab value of url
-            var url_string = window.location.href;
-            var url = new URL(url_string);
-            var tab = url.searchParams.get("tab");
-
-            switch (tab){
-                case 'reader':
-                    toggle_visibility(['content-reader','content-capture','content-register','content-administrator']);
-                    setActive('Reader','Capture','Register', 'Admin');
-                    break;
-                case 'capture':
-                    toggle_visibility(['content-capture','content-reader', 'content-register', 'content-administrator']);
-                    setActive('Capture','Reader','Register', 'Admin');
-                    break;
-                case 'register':
-                    setTimeout(function(){
-                        toggle_visibility(['content-register','content-reader','content-capture', 'content-administrator']);
-                        setActive('Register','Reader','Capture', 'Admin');
-                    }, 100);
-                    break;
-                default:
-                    toggle_visibility(['content-capture','content-reader', 'content-register', 'content-administrator']);
-                    setActive('Capture','Reader','Register', 'Admin');
-                    break;
-            }
-
+            
             $('#clock').click(function(){
-                if (clocked_status) onClockedIn();
-                else onClockOut();
+                $('#statusModal').modal('hide');
+                if (clocked_status) onClockOut();
+                else onClockedIn();
             });
         });
     </script>

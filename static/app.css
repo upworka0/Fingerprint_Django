@@ -4241,3 +4241,55 @@ td, th{
 .checkbox label{
     padding-left: 0px!important;
 }
+
+.btn.btn-info.check{
+  border-radius: 40px;
+  padding: 6px 10px;
+  opacity: 1!important;
+  cursor: default;
+}
+
+.btn.btn-warning.times{
+  border-radius: 40px;
+  opacity: 1!important;
+  cursor: default;
+}
+
+
+/* Modal Css */
+.modal .modal-header {
+  border-bottom: none;
+  position: relative;
+}
+.modal .modal-header .btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.modal .modal-footer {
+  border-top: none;
+  padding: 0;
+}
+.modal .modal-footer .btn-group > .btn:first-child {
+  border-bottom-left-radius: 0;
+}
+.modal .modal-footer .btn-group > .btn:last-child {
+  border-top-right-radius: 0;
+}
+
+
+/* Bootstrap slider */
+.slider-selection{
+  background: grey;
+}
+
+.slider.slider-horizontal{
+  width: 100%!important;
+}
+
+#range_value{
+    color: brown;
+}

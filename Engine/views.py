@@ -135,7 +135,7 @@ def process(request):
                     "message" : ""
                 })
         else:
-            return JsonResponse(errorMessage("Sorry no match found, please contact your administrator, or If you were not registered, then please register!"))
+            return JsonResponse(errorMessage("Sorry no match found, Please try again or contact your administrator, or If you were not registered, then please register!"))
 
 @csrf_exempt
 def clockIn(request):
@@ -218,11 +218,15 @@ def adminapi(request):
         for user in users:
             ur = {
                 "username"      : user.username,
-                "created_at"    : user.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-                "is_clockedIn"  : user.is_clockedIn,
-                "clockin_on"    : user.clockin_on,
-                "clockout_on"   : user.clockout_on
+                "created_at"    : user.created_at.isoformat(), #.strftime('%Y-%m-%d %H:%M:%S')
+                "is_clockedIn"  : user.is_clockedIn, 
+                "clockin_on"    : user.clockin_on.isoformat() if user.clockin_on else '',
+                "clockout_on"   : user.clockout_on.isoformat()  if user.clockout_on else ''
             }
+            if user.is_clockedIn:
+                ur['clockout_on'] = ''
+            else:
+                ur['clockin_on'] = ''
             users_dicts.append(ur)
 
 
@@ -240,13 +244,20 @@ def adminapi(request):
             clocks = clocks.filter(user__username=request.POST['username'])
 
         clocks_dicts = []
+        
+        # range
+        threhold = 0
+        if 'range' in request.POST:
+            threhold = float(request.POST['range']) * 3600
+
         for clock in clocks:
-            ck = {
-                "username"  : clock.user.username,
-                "clockin"   : clock.clockin.strftime('%Y-%m-%d %H:%M:%S'),
-                "clockout"  : clock.clockout.strftime('%Y-%m-%d %H:%M:%S'),
-            }
-            clocks_dicts.append(ck)
+            if (clock.clockout - clock.clockin).total_seconds() >= threhold:                
+                ck = {
+                    "username"  : clock.user.username,
+                    "clockin"   : clock.clockin.isoformat(),
+                    "clockout"  : clock.clockout.isoformat(),
+                }
+                clocks_dicts.append(ck)
 
         return JsonResponse({
             "status" : "success",

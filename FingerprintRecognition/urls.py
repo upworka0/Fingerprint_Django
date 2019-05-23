@@ -23,6 +23,7 @@ urlpatterns = [
     path('index/',      views.index),
     path('process/',    views.process),
     path('clockout/',   views.clockOut),
+    path('clockin/',    views.clockIn),
     path('register/',   views.register),
 
     path('managepage/', views.adminpage),   # Administrator api

@@ -20,6 +20,10 @@
     <!-- Bootstrap datetime picker -->
     <link rel="stylesheet" type="text/css" href="{% static 'datetimepicker/bootstrap-datetimepicker.css' %}" />
 
+    <!-- Bootstrap Slider -->
+    <link rel="stylesheet" type="text/css" href="//cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.1/css/bootstrap-slider.css" />
+
+
     <link rel="stylesheet" href="{% static 'app.css' %}" type="text/css" />
 </head>
 <body>
@@ -62,7 +66,7 @@
             <ul class="nav navbar-nav">
                 <li id="Capture" class="">
                     <a href="/index/?tab=capture" style="color: white;">
-                        Capture
+                        Clock IN/OUT
                     </a>
                 </li>
             </ul> 
@@ -123,7 +127,7 @@
 
     <div id = "content-administrator" style="display: none;">
         <div class="container">
-            <div class="col-md-8 col-md-offset-2">
+            <div class="col-md-10 col-md-offset-1">
                 <div class="row">
                     <ul class="nav nav-tabs m-b-30">
                         <li class="users_tab active"><a href="#" onclick="setUsersTab();">Users</a></li>
@@ -152,9 +156,11 @@
                                     <tr>
                                         <th>No</th>
                                         <th>User</th>
-                                        <th>Status</th>
-                                        <th>Created At</th>
-                                        <th>Total</th>
+                                        <th>Clock Status</th>
+                                        <th>Clocked In</th>
+                                        <th>Clocked Out</th>
+                                        <th>Current Clocked Time</th>
+                                        <th>Registered At</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -208,14 +214,23 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-md-8">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Range</label>  &nbsp;&nbsp;<span id="range_value">0 hour</span> <br>
+                                    <input id="range" data-slider-id='rangeSlider' type="text" data-slider-min="0" data-slider-max="48" data-slider-step="0.1" data-slider-value="0" name="range" />
+                                </div>
+                            </div>
+                        </div>                        
                         <div class="col-md-12 m-t-30">
                             <table class="table table-striped table-bordered" id="clock_table">
                                 <thead>
                                     <tr>
                                         <th>No</th>
                                         <th>User</th>
+                                        <th>Clocked Time</th>
                                         <th>Clocked In</th>
-                                        <th>Clocked Out</th>
+                                        <th>Clocked Out</th>                                        
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -265,6 +280,8 @@
 
     <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
     
+    <!-- Bootstrap Slider -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/10.6.1/bootstrap-slider.js"></script>
 
     <!-- Custom JS -->
     <script src="{% static 'custom.js' %}"></script>
@@ -304,6 +321,16 @@
                     initUserTables(userdata, false);
                 }
             });
+
+            // With JQuery
+            $('#range').slider({
+                formatter: function(value) {
+                    return value + ' hours';
+                },
+            }).on('slide', function(slideEvt){
+                $("#range_value").text(slideEvt.value + ' hour');
+            });
+
         });
     </script>
 </body>

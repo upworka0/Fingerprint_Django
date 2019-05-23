@@ -28,28 +28,70 @@ function showSpinner(){
     $('#spinner').css('display', 'block');
 }
 
+function getDiffof2days(day1, day2){
+
+    // get total seconds between the times
+    var delta = Math.floor(Math.abs(day2.getTime() - day1.getTime()) / 1000);
+
+    // calculate (and subtract) whole days
+    var days = Math.floor(delta / 86400);
+    delta -= days * 86400;
+
+    // calculate (and subtract) whole hours
+    var hours = Math.floor(delta / 3600) % 24;
+    delta -= hours * 3600;
+
+    // calculate (and subtract) whole minutes
+    var minutes = Math.floor(delta / 60) % 60;
+    delta -= minutes * 60;
+
+    // what's left is seconds
+    var seconds = delta % 60;  // in theory the modulus is not required
+
+    return [{"key" : "days", "value" : days}, {"key" : "hrs", "value" : hours}, {"key" : "mins" , "value" : minutes}, {"key" : "secs" , "value" : seconds}];
+}
+
+function _localstr(dateStr){
+    return new Date(dateStr).toLocaleString();
+}
+
 // users table initialize by data
 function initUserTables(data, is_clockedIn=false){
-    var i, users = [];
+    var i, users = [], total='';
     for ( i = 0 ; i < data.length; i++){
-        if (is_clockedIn){
+
+        // get total duration of clocked in status
+        total='';
+        if (data[i].is_clockedIn){            
+            var deltas = getDiffof2days(new Date(data[i].clockin_on), new Date());
+            deltas.forEach(function(ele) {
+                if (ele.value !== 0) total += ele.value + ele.key + ' ';
+            });
+        }
+
+
+        if (is_clockedIn){            
             if (data[i].is_clockedIn)
                 users.push([
                     i+1,
                     data[i].username,
-                    data[i].is_clockedIn,
-                    0,
-                    data[i].created_at,
-                    '<a class="remove" onclick="userRemove(' + "'" + data[i].username + "'" + ')"><i class="fas fa-trash"></i> Remove</a>'
+                    '<a class="btn btn-info check" disabled><i class="fas fa-check"></i></a>',
+                    _localstr(data[i].clockin_on),
+                    '_',
+                    total,
+                    _localstr(data[i].created_at),
+                    '<a class="btn btn-danger remove" onclick="userRemove(' + "'" + data[i].username + "'" + ')"><i class="fas fa-trash"></i></a>'
                 ]);
         }else{
             users.push([
                 i+1,
                 data[i].username,
-                data[i].is_clockedIn,
-                0,
-                data[i].created_at,
-                '<a class="remove" onclick="userRemove(' + "'" + data[i].username + "'" + ')"><i class="fas fa-trash"></i> Remove</a>'
+                data[i].is_clockedIn  ? '<a class="btn btn-info check" disabled><i class="fas fa-check"></i></a>' : '<a class="btn btn-warning times" disabled><i class="fas fa-times"></i></a>',
+                data[i].is_clockedIn  ? _localstr(data[i].clockin_on) : '_',
+                !data[i].is_clockedIn ? _localstr(data[i].clockout_on) : '_',
+                total,
+                _localstr(data[i].created_at),
+                '<a class="btn btn-danger remove" onclick="userRemove(' + "'" + data[i].username + "'" + ')"><i class="fas fa-trash"></i></a>'
             ]);
         }
     }
@@ -59,17 +101,26 @@ function initUserTables(data, is_clockedIn=false){
     userTable.draw();
 }
 
-// initialize history table by data
+
 function initHistoryTables(data){
-    var i, clocks = [];
+    var i, clocks = [], total='';
     for ( i = 0 ; i < data.length; i++){
+        total='';
+        var deltas = getDiffof2days(new Date(data[i].clockin), new Date(data[i].clockout));
+        deltas.forEach(function(ele) {
+            if (ele.value !== 0) total += ele.value + ele.key + ' ';
+        });
+
+        console.log(total);
         clocks.push([
             i+1,
             data[i].username,
-            data[i].clockin,
-            data[i].clockout
+            total,
+            _localstr(data[i].clockin),
+            _localstr(data[i].clockout)
         ]);        
     }
+
     clockTable.clear();
     clockTable.rows.add(clocks);
     clockTable.draw();
@@ -140,6 +191,7 @@ async function Search(){
     if (start_date !== '') data['start_date']   = start_date;
     if (end_date   !== '') data['end_date']     = end_date;
     if (username   !== '') data['username']     = username;
+    data['range'] = $('#range').val();
     
     showSpinner();
     var res = await AjaxRequest('/adminapi/', data);
@@ -220,4 +272,20 @@ function checkButtonStatus(){
         else
             $('#clock').val("Clock In");
     }
+}
+
+
+// show modal for clocked status
+function showModal(text, status){
+    $('#staus_text').html(text);
+    $('#forsuccess').addClass('hidden');
+    $('#fordanger').addClass('hidden');
+
+    if (status === 'success'){
+        $('#forsuccess').removeClass('hidden');
+    }else{
+        $('#fordanger').removeClass('hidden');
+    }
+
+    $('#statusModal').modal('show');
 }

@@ -75,7 +75,7 @@ var FingerprintSdkTest = (function () {
             showMessage(error.message);
         });
     };
-    FingerprintSdkTest.prototype.stopCapture = function () {
+    FingerprintSdkTest.prototype.stopCapture = async function () {
         if (!this.acquisitionStarted) //Monitor if already stopped capturing
             return;
         var _instance = this;
@@ -85,6 +85,8 @@ var FingerprintSdkTest = (function () {
 
             //Disabling stop once stoped
             disableEnableStartStop();
+
+            if (myVal !== "") onStart();
 
         }, function (error) {
             showMessage(error.message);
@@ -143,10 +145,10 @@ function onClear() {
          var vDiv1 = document.getElementById('imagediv1');
          vDiv1.innerHTML = "";
          localStorage.setItem("imageSrc", "");
-
         clocked_status = false;
         clockin_name = '';
         checkButtonStatus();
+        document.getElementById('clockinfo_display').innerHTML = "";
 }
 
 function onRegister() {
@@ -210,7 +212,7 @@ async function onClockOut(){
 }
 
 // Clock In of user
-async function onClockOut(){
+async function onClockedIn(){
     if (clockin_name !== ''){
         var res = await AjaxRequest('/clockin/',  {"username" : clockin_name});
        
@@ -233,7 +235,7 @@ async function onClockOut(){
 function toggle_visibility(ids) {
     document.getElementById("qualityInputBox").value = "";
     onStop();
-    enableDisableScanQualityDiv(ids[0]); // To enable disable scan quality div
+    enableDisableScanQualityDiv(ids[0]); // To enable disable scan quality div    
     for (var i=0;i<ids.length;i++) {
        var e = document.getElementById(ids[i]);
         if(i == 0){
@@ -248,6 +250,7 @@ function toggle_visibility(ids) {
    clocked_status = false;
    clockin_name = '';
    checkButtonStatus();
+   onClear();
 }
 
 function populateReaders(readersArray) {
@@ -304,17 +307,31 @@ function sendImageData(img){
         data : {data: img},
         method : 'POST',
         success: function(res){
+            var text = "";
+
             $("#loadMe").modal("hide");
             var vDisplay = document.getElementById('clockinfo_display');
             if(res.status == "failed"){
                 showNotification(res.message, "danger");
                 vDisplay.innerHTML =  "<br>";
+                clockin_name = '';
+                clocked_status = false;
+                showModal("<h4>" + res.message + "</h4>", res.status);
             }
             else{
-                clockin_name = res.username;
-                clocked_status = res.clocked_status;
+                clockin_name    = res.username;
+                clocked_status  = res.clocked_status;
+
                 // showNotification(res.message, "success");
                 vDisplay.innerHTML = "Hello " + clockin_name + "!<br>";
+                text = "<h3>Hello " + clockin_name + "!</h3>";
+                if (clocked_status){
+                    text += "<h4>You are already clocked in. Are you sure to clock out now?</h4>";
+                }else{
+                    text += "<h4>You are clocked out. Are you sure to clock in now?</h4>";
+                }
+
+                showModal(text, res.status);
             }
             checkButtonStatus();
         }
@@ -372,9 +389,9 @@ function readersDropDownPopulate(checkForRedirecting){ // Check for redirecting 
             readersDropDownElement.add(option);
         }
 
-    //Check if readers are available get count and  provide user information if no reader available,
-    //if only one reader available then select the reader by default and sennd user to capture tab
-    checkReaderCount(sucessObj,checkForRedirecting);
+        //Check if readers are available get count and  provide user information if no reader available,
+        //if only one reader available then select the reader by default and sennd user to capture tab
+        checkReaderCount(sucessObj,checkForRedirecting);
 
     }, function (error){
         showMessage(error.message);
@@ -390,6 +407,8 @@ function checkReaderCount(sucessObj,checkForRedirecting){
             toggle_visibility(['content-capture','content-reader', 'content-register', 'content-administrator']);
             enableDisableScanQualityDiv("content-capture"); // To enable disable scan quality div
             setActive('Capture','Reader', 'Register', 'Admin'); // Set active state to capture
+
+            onStart();
         }
    }
 
@@ -401,13 +420,7 @@ function selectChangeEvent(){
     myVal = readersDropDownElement.options[readersDropDownElement.selectedIndex].value;
     disableEnable();
     onClear();
-
-    //Make capabilities button disable if no user selected
-    if(myVal == ""){
-        $('#capabilities').prop('disabled', true);
-    }else{
-        $('#capabilities').prop('disabled', false);
-    }
+    onStart();
 }
 
 function populatePopUpModal(){
