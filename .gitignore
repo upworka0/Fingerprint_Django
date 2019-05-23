@@ -109,3 +109,5 @@ venv.bak/
 .idea/
 *.sqlite3
 nd_admin.log
+
+/static/tmp
